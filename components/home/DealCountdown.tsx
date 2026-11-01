@@ -4,11 +4,28 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
-// Fixed target so the countdown is deterministic between server and client renders.
-const DEAL_END = new Date("2026-10-12T23:59:59Z").getTime();
+// Set to an ISO date for a real campaign deadline. When unset (or once it has passed), the
+// offer rolls over weekly so the timer never sits at 00:00:00:00.
+const CAMPAIGN_END: string | null = null;
 
+// Sunday 23:59:59 IST is Sunday 18:29:59 UTC.
+const WEEKLY_END_UTC = { day: 0, hours: 18, minutes: 29, seconds: 59 };
+
+function getDealEnd(now: number) {
+  const campaignEnd = CAMPAIGN_END ? new Date(CAMPAIGN_END).getTime() : 0;
+  if (campaignEnd > now) return campaignEnd;
+
+  const end = new Date(now);
+  end.setUTCHours(WEEKLY_END_UTC.hours, WEEKLY_END_UTC.minutes, WEEKLY_END_UTC.seconds, 0);
+  end.setUTCDate(end.getUTCDate() + ((WEEKLY_END_UTC.day - end.getUTCDay() + 7) % 7));
+  if (end.getTime() <= now) end.setUTCDate(end.getUTCDate() + 7);
+  return end.getTime();
+}
+
+// Only ever called client-side (inside effects), so server and client renders still match.
 function getRemaining() {
-  const diff = Math.max(0, DEAL_END - Date.now());
+  const now = Date.now();
+  const diff = Math.max(0, getDealEnd(now) - now);
   return {
     days: Math.floor(diff / (1000 * 60 * 60 * 24)),
     hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
@@ -56,8 +73,8 @@ export function DealCountdown() {
         <div className="flex flex-col items-center gap-6">
           <div className="flex gap-3" role="timer" aria-label="Time remaining on this offer">
             {units.map((unit) => (
-              <div key={unit.label} className="w-16 rounded-xl bg-white/15 py-3">
-                <span className="block text-2xl font-bold tabular-nums" aria-hidden="true">
+              <div key={unit.label} className="min-w-[72px] rounded-2xl bg-white/20 px-3 py-3 text-left">
+                <span className="block text-3xl font-bold tabular-nums" aria-hidden="true">
                   {unit.value !== undefined ? String(unit.value).padStart(2, "0") : "--"}
                 </span>
                 <span className="mt-1 block text-xs uppercase tracking-wide text-orange-100">

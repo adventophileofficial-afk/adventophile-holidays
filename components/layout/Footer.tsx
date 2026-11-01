@@ -9,6 +9,7 @@ const exploreLinks = [
   { href: "/destinations", label: "Destinations" },
   { href: "/tours", label: "All Packages" },
   { href: "/services", label: "Our Services" },
+  { href: "/why-adventophile", label: "Why Adventophile" },
   { href: "/blog", label: "Journal" },
   { href: "/about", label: "About Us" },
 ];

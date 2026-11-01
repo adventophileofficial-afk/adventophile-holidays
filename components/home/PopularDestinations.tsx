@@ -1,10 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { getAllDestinations } from "@/lib/data/destinations";
+import { interleaveByScope } from "@/lib/interleave";
 import { Reveal } from "@/components/shared/Reveal";
 
 export function PopularDestinations() {
-  const destinations = getAllDestinations();
+  const destinations = interleaveByScope(getAllDestinations(), (d) => d.scope);
 
   return (
     <section className="section bg-muted">

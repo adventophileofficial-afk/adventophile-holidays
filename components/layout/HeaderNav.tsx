@@ -4,9 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { BadgeIndianRupee, ChevronDown, Globe2, Headphones, Menu, MapPin, X } from "lucide-react";
+import { ChevronDown, Menu, Sparkles, X } from "lucide-react";
 import clsx from "clsx";
 import { Dropdown, DropdownLink } from "@/components/ui/Dropdown";
+import { whyPoints } from "@/lib/data/why";
 
 interface DestinationLink {
   slug: string;
@@ -27,11 +28,9 @@ const travelServiceLinks = [
   { href: "/services#complete-travel-assistance", label: "Complete Travel Assistance" },
 ];
 
-const whyPoints = [
-  { icon: MapPin, label: "Based in Jodhpur" },
-  { icon: Globe2, label: "Domestic & International" },
-  { icon: BadgeIndianRupee, label: "Built to Your Budget" },
-  { icon: Headphones, label: "Assistance While You Travel" },
+const whyLinks = [
+  { href: "/why-adventophile", icon: Sparkles, label: "Overview" },
+  ...whyPoints.map(({ slug, icon, title }) => ({ href: `/why-adventophile#${slug}`, icon, label: title })),
 ];
 
 const flatLinks = [
@@ -93,10 +92,10 @@ export function HeaderNav({ destinationLinks }: { destinationLinks: Record<"dome
         </Dropdown>
 
         <Dropdown label="Why Adventophile" panelClassName="min-w-64">
-          {whyPoints.map(({ icon: Icon, label }) => (
+          {whyLinks.map(({ href, icon: Icon, label }) => (
             <Link
-              key={label}
-              href="/about"
+              key={href}
+              href={href}
               role="menuitem"
               className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-foreground hover:bg-muted"
             >
@@ -250,10 +249,10 @@ export function HeaderNav({ destinationLinks }: { destinationLinks: Record<"dome
             onToggle={() => toggleMobileSection("why")}
             tabIndex={open ? 0 : -1}
           >
-            {whyPoints.map(({ label }) => (
+            {whyLinks.map(({ href, label }) => (
               <Link
-                key={label}
-                href="/about"
+                key={href}
+                href={href}
                 tabIndex={open ? 0 : -1}
                 className="block rounded-lg px-3 py-2 text-sm text-foreground hover:bg-muted"
                 onClick={closeOnNavigate}

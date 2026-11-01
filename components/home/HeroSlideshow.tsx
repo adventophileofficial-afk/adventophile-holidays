@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { useReducedMotion } from "framer-motion";
 import { Compass, Crosshair, Map, PlaneTakeoff, Users, UsersRound } from "lucide-react";
 import clsx from "clsx";
 
@@ -14,7 +14,7 @@ const featureStrip = [
   { icon: Map, label: "Custom Itineraries" },
 ];
 
-const SLIDE_DURATION_MS = 5000;
+const SLIDE_DURATION_MS = 3000;
 
 interface Slide {
   src: string;
@@ -23,52 +23,85 @@ interface Slide {
 
 export function HeroSlideshow({ slides }: { slides: Slide[] }) {
   const [index, setIndex] = useState(0);
+  // Slides whose <Image> has been rendered: the current one plus the next, so each 4K file is
+  // downloaded and decoded one slide ahead instead of all eight up front. Once mounted a slide
+  // stays mounted, so every change is a pure CSS opacity crossfade between decoded images.
+  const [mounted, setMounted] = useState(() => new Set([0, 1 % slides.length]));
+  const [paused, setPaused] = useState(false);
   const shouldReduceMotion = useReducedMotion();
 
+  const goTo = useCallback(
+    (i: number) => {
+      setIndex(i);
+      setMounted((prev) => {
+        const next = (i + 1) % slides.length;
+        if (prev.has(i) && prev.has(next)) return prev;
+        return new Set(prev).add(i).add(next);
+      });
+    },
+    [slides.length]
+  );
+
+  // A timeout keyed on `index` (rather than an interval) restarts the full duration whenever a
+  // dot is clicked.
   useEffect(() => {
-    const id = setInterval(() => setIndex((i) => (i + 1) % slides.length), SLIDE_DURATION_MS);
-    return () => clearInterval(id);
-  }, [slides.length]);
+    if (paused) return;
+    const id = setTimeout(() => goTo((index + 1) % slides.length), SLIDE_DURATION_MS);
+    return () => clearTimeout(id);
+  }, [index, paused, goTo, slides.length]);
+
+  // Don't keep advancing in a background tab.
+  useEffect(() => {
+    const onVisibility = () => setPaused(document.hidden);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, []);
 
   return (
     <section className="relative flex min-h-[560px] items-center overflow-hidden text-white sm:min-h-[640px] lg:min-h-[720px]">
       <div className="absolute inset-0 bg-brand-900">
-        <AnimatePresence mode={shouldReduceMotion ? "wait" : "sync"} initial={false}>
-          <motion.div
-            key={index}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: shouldReduceMotion ? 0 : 1 }}
-            className="absolute inset-0"
+        {slides.map((slide, i) => (
+          <div
+            key={slide.src}
+            aria-hidden={i !== index}
+            className={clsx(
+              "absolute inset-0 transition-opacity duration-1000 ease-in-out",
+              i === index ? "opacity-100" : "opacity-0"
+            )}
           >
-            <Image
-              src={slides[index].src}
-              alt={slides[index].alt}
-              fill
-              priority={index === 0}
-              sizes="100vw"
-              className="object-cover"
-            />
-          </motion.div>
-        </AnimatePresence>
+            {mounted.has(i) && (
+              <Image
+                src={slide.src}
+                alt={slide.alt}
+                fill
+                priority={i === 0}
+                loading={i === 0 ? undefined : "eager"}
+                sizes="100vw"
+                quality={85}
+                className={clsx(
+                  "object-cover",
+                  // Slow zoom-out on the active slide; the crossfade alone when reduced motion is on.
+                  !shouldReduceMotion && "transition-transform duration-[4000ms] ease-out",
+                  !shouldReduceMotion && (i === index ? "scale-100" : "scale-110")
+                )}
+              />
+            )}
+          </div>
+        ))}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20" />
         <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/20 to-transparent" />
       </div>
 
       <div className="container-page relative z-10 py-16 sm:py-20">
         <div className="max-w-xl">
-          <p className="section-eyebrow text-accent-500">
-            Tailor-Made Holidays <span className="mx-2 text-white/50">•</span> Jodhpur, India
-          </p>
-          <h1 className="mt-3 font-display text-4xl font-bold leading-tight sm:text-5xl">
+          <h1 className="font-display text-4xl font-bold leading-tight sm:text-5xl">
             Your Journey.
             <br />
             <span className="text-accent-500">Thoughtfully Planned.</span>
           </h1>
           <p className="mt-5 max-w-lg text-base text-brand-50 sm:text-lg">
-            From Rajasthan to the world, we design personalised holidays around your dates, budget
-            and travel style — with expert planning and support from start to finish.
+            From India to the world, we design personalised holidays around your dates, budget and
+            travel style — with expert planning and support from start to finish.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link href="/contact" className="btn-primary">
@@ -100,19 +133,13 @@ export function HeroSlideshow({ slides }: { slides: Slide[] }) {
         </div>
       </div>
 
-      <p className="absolute bottom-16 right-4 z-10 hidden -rotate-3 font-script text-xl text-accent-500 [text-shadow:0_2px_10px_rgb(0_0_0_/_0.6)] sm:right-8 sm:block sm:text-2xl">
-        Born in Rajasthan.
-        <br />
-        Planning journeys worldwide.
-      </p>
-
       <div className="absolute bottom-6 left-0 right-0 z-10 flex justify-center gap-2">
         {slides.map((slide, i) => (
           <button
             key={slide.src}
             type="button"
             aria-label={`Show slide ${i + 1}: ${slide.alt}`}
-            onClick={() => setIndex(i)}
+            onClick={() => goTo(i)}
             className={clsx(
               "h-1.5 rounded-full transition-all",
               i === index ? "w-6 bg-accent-500" : "w-1.5 bg-white/40 hover:bg-white/60"

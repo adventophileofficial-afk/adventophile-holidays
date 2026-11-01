@@ -49,7 +49,7 @@ const destinationCovers = {
   thailand: "Thailand/Our Favorite Places_ Bangkok.jpg",
   usa: "USA/Screenshot 2026-10-05 182639.png",
   kenya: "keny/The Maasai Jump.jpg",
-  tomorrowland: "tomorrowland/Tomorrowland 2010.jpg",
+  // tomorrowland: now generated at banner size by scripts/import-hero-photos.mjs.
 };
 
 // tour slug -> ordered list of explicit source files (repo-root relative).

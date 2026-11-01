@@ -12,6 +12,8 @@ const nextConfig: NextConfig = {
     // `search` is omitted (vs. pinned to one value) because the version changes per file, per
     // import run — safe here since `/images/**` is our own self-hosted, non-user-controlled path.
     localPatterns: [{ pathname: "/images/**" }],
+    // 85 is used only by the 4K homepage hero slides; everything else keeps the default 75.
+    qualities: [75, 85],
   },
 };
 

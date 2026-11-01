@@ -17,6 +17,8 @@
 
   --accent-500: #c89628;
   --accent-600: #a67c1e;
+
+  --cream: #faf6ef;
 }
 
 @theme inline {
@@ -36,6 +38,8 @@
 
   --color-accent-500: var(--accent-500);
   --color-accent-600: var(--accent-600);
+
+  --color-cream: var(--cream);
 
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
@@ -67,6 +71,16 @@ body {
 
   .section-lede {
     @apply mt-4 max-w-2xl text-base text-muted-foreground sm:text-lg;
+  }
+
+  /* Centered gold eyebrow flanked by short rules ("—— WHAT WE DO ——"). */
+  .eyebrow-ruled {
+    @apply flex items-center justify-center gap-4 text-xs font-semibold uppercase tracking-[0.3em] text-accent-600 sm:text-sm;
+  }
+
+  .eyebrow-ruled::before,
+  .eyebrow-ruled::after {
+    @apply h-px w-10 bg-accent-500/70 content-[''] sm:w-16;
   }
 
   .btn-primary,

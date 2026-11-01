@@ -1,10 +1,12 @@
 import Link from "next/link";
-import { getFeaturedTours } from "@/lib/data/tours";
+import { getFeaturedTours, getTourScope } from "@/lib/data/tours";
+import { interleaveByScope } from "@/lib/interleave";
 import { TourCard } from "@/components/tours/TourCard";
 import { Reveal } from "@/components/shared/Reveal";
 
 export function PopularTours() {
-  const tours = getFeaturedTours();
+  // Alternate international and domestic packages; 6 fills two rows of the 3-column grid.
+  const tours = interleaveByScope(getFeaturedTours(), getTourScope).slice(0, 6);
 
   return (
     <section className="section">

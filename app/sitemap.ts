@@ -13,6 +13,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/tours",
     "/destinations",
     "/services",
+    "/why-adventophile",
     "/blog",
     "/about",
     "/contact",
