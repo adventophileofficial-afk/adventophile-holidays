@@ -47,8 +47,8 @@ export default function PrivacyPage() {
           <section>
             <h2 className="text-xl font-semibold text-foreground">How we store it</h2>
             <p className="mt-2">
-              Form submissions are emailed to our team and recorded in a private spreadsheet (Google Sheets)
-              that only our staff can access, so we can follow up on your enquiry. They are never sold or
+              Form submissions are recorded in a private spreadsheet (Google Sheets) that only our staff
+              can access, so we can follow up on your enquiry. They are never sold or
               shared with third parties for advertising. We keep enquiry records only as long as needed to
               handle your request and for basic business record-keeping, and delete them sooner if you ask.
             </p>

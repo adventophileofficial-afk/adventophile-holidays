@@ -1,13 +1,12 @@
 import { NextResponse } from "next/server";
 import type { z } from "zod";
 import { site } from "@/lib/site";
-import { sendLeadEmail } from "@/lib/email";
 import { appendLeadToSheet } from "@/lib/sheets";
 
 export type LeadSource = "contact" | "booking" | "newsletter";
 
 export interface Lead {
-  /** Short id shown in the email subject and the sheet row, so the two can be matched up. */
+  /** Short id shown in the sheet row, handy when talking about a specific enquiry. */
   id: string;
   /** India time, e.g. "2026-11-01 14:05". */
   receivedAt: string;
@@ -26,25 +25,6 @@ export interface Lead {
 
 export type LeadFields = Omit<Lead, "id" | "receivedAt">;
 
-/** Human-readable label/value pairs, shared by the email body and the sheet columns. */
-export function leadToRows(lead: Lead): [label: string, value: string][] {
-  return [
-    ["Enquiry ID", lead.id],
-    ["Received", lead.receivedAt],
-    ["Source", lead.source],
-    ["Name", lead.name],
-    ["Phone", lead.phone],
-    ["Email", lead.email],
-    ["Destination", lead.destination],
-    ["Travel month", lead.travelMonth],
-    ["Travellers", lead.travellers],
-    ["Budget", lead.budget],
-    ["Tour", lead.tour],
-    ["Message", lead.message],
-    ["Page", lead.page],
-  ];
-}
-
 function istTimestamp(date = new Date()): string {
   // en-CA formats as YYYY-MM-DD, which sorts correctly in a spreadsheet.
   const parts = new Intl.DateTimeFormat("en-CA", {
@@ -60,17 +40,9 @@ function istTimestamp(date = new Date()): string {
   return `${get("year")}-${get("month")}-${get("day")} ${get("hour")}:${get("minute")}`;
 }
 
-function subjectFor(lead: Lead): string {
-  const tag = `[${lead.source === "booking" ? "Booking" : lead.source === "newsletter" ? "Newsletter" : "Enquiry"} #${lead.id}]`;
-  if (lead.source === "newsletter") return `${tag} New subscriber: ${lead.email}`;
-  const what = lead.tour || lead.destination || "Trip enquiry";
-  const who = lead.travellers ? `${lead.name}, ${lead.travellers} travellers` : lead.name;
-  return `${tag} ${what} — ${who}`;
-}
-
 /**
- * Delivers a lead to every configured sink (email + Google Sheet) in parallel. The lead is
- * considered safe if at least one sink accepted it; throws only when all of them failed.
+ * Records a lead in the Google Sheet. The sheet is the only copy, so a failed write is retried
+ * once (a rare duplicate row is better than a lost enquiry); throws if both attempts fail.
  */
 export async function submitLead(fields: LeadFields): Promise<Lead> {
   const lead: Lead = {
@@ -79,40 +51,24 @@ export async function submitLead(fields: LeadFields): Promise<Lead> {
     receivedAt: istTimestamp(),
   };
 
-  const hasEmail = Boolean(process.env.RESEND_API_KEY);
-  const hasSheet = Boolean(process.env.LEADS_SHEET_WEBHOOK_URL);
-
-  if (!hasEmail && !hasSheet) {
+  if (!process.env.LEADS_SHEET_WEBHOOK_URL) {
     if (process.env.NODE_ENV === "production") {
       // Never tell a visitor "sent" when the lead went nowhere.
-      throw new Error("No lead destination configured (set RESEND_API_KEY and/or LEADS_SHEET_WEBHOOK_URL).");
+      throw new Error("LEADS_SHEET_WEBHOOK_URL is not set — enquiries have nowhere to go.");
     }
-    console.warn("[leads] No email or sheet configured — logging lead instead of delivering it.\n", lead);
+    console.warn("[leads] LEADS_SHEET_WEBHOOK_URL not set — logging lead instead of saving it.\n", lead);
     return lead;
   }
 
-  const tasks: Promise<unknown>[] = [];
-  const names: string[] = [];
-  if (hasEmail) {
-    tasks.push(sendLeadEmail({ subject: subjectFor(lead), replyTo: lead.email, rows: leadToRows(lead) }));
-    names.push("email");
-  }
-  if (hasSheet) {
-    tasks.push(appendLeadToSheet(lead));
-    names.push("sheet");
-  }
-
-  const results = await Promise.allSettled(tasks);
-  results.forEach((result, i) => {
-    if (result.status === "rejected") {
-      console.error(`[leads] ${names[i]} delivery failed for ${lead.id}`, result.reason);
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      await appendLeadToSheet(lead);
+      return lead;
+    } catch (error) {
+      console.error(`[leads] sheet delivery failed for ${lead.id} (attempt ${attempt})`, error);
     }
-  });
-
-  if (results.every((result) => result.status === "rejected")) {
-    throw new Error(`All lead destinations failed for ${lead.id}`);
   }
-  return lead;
+  throw new Error(`Could not save lead ${lead.id} to the sheet`);
 }
 
 const MAX_BODY_BYTES = 10_000;

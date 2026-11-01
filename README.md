@@ -39,22 +39,21 @@ Open http://localhost:3000.
   reviews in `lib/data/testimonials.ts` are illustrative, not real people or real feedback. Both
   files are marked `PLACEHOLDER`; replace them before launch.
 
-## Contact / booking forms
+## Contact / booking / newsletter forms
 
-`/contact` and each tour's "Book This Tour" form POST to `/api/contact` and `/api/book`, which
-send lead emails via [Resend](https://resend.com). Copy `.env.local.example` to `.env.local` and
-fill in:
+`/contact`, each tour's "Book This Tour" form and the footer newsletter POST to `/api/contact`,
+`/api/book` and `/api/newsletter`. Every submission is saved as a row in a Google Sheet through a
+Google Apps Script web app (`scripts/leads-sheet.gs`); setup steps are in `docs/leads-setup.md`.
+Copy `.env.local.example` to `.env.local` and fill in:
 
-- `RESEND_API_KEY` — without this set, forms still work end-to-end; emails are logged to the
-  server console instead of sent, so you can test the full flow before creating a Resend account.
-- `CONTACT_TO_EMAIL` — inbox that receives leads.
-- `CONTACT_FROM_EMAIL` — verified sender once you have a Resend domain; defaults to Resend's
-  shared testing sender otherwise.
+- `LEADS_SHEET_WEBHOOK_URL` — the Apps Script web app URL (ends in `/exec`). Without it, leads are
+  logged to the server console in development; in production the forms return an error instead
+  of pretending to succeed.
+- `LEADS_SHEET_SECRET` — must match the script's `LEADS_SHEET_SECRET` script property.
 - `NEXT_PUBLIC_SITE_URL` — used for canonical URLs, sitemap.xml, robots.txt, and OG images.
 
-Both forms include a hidden honeypot field (`company`) — a filled-in value is silently accepted
-(`{ ok: true }`, no email sent) rather than rejected, so bots can't distinguish it from a real
-submission.
+Spam protection: a hidden honeypot field (`company`) and a minimum time on the form. Either trap
+returns `{ ok: true }` without saving, so bots can't distinguish it from a real submission.
 
 ## Verification
 
