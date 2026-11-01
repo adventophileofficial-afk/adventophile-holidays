@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Mail, MapPin, Phone } from "lucide-react";
 import { site } from "@/lib/site";
 import { getAllServices } from "@/lib/data/services";
+import { getDestinationBySlug, getDestinationsByScope } from "@/lib/data/destinations";
 import { buildMetadata } from "@/lib/seo";
 import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import { ContactForm } from "@/components/shared/ContactForm";
@@ -16,8 +17,17 @@ export const metadata: Metadata = buildMetadata({
 
 const telHref = `tel:${site.phone.replace(/[^+\d]/g, "")}`;
 
-export default function ContactPage() {
+const toOption = ({ slug, name }: { slug: string; name: string }) => ({ slug, name });
+
+export default async function ContactPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
   const services = getAllServices();
+  const { destination } = await searchParams;
+  const defaultDestination =
+    typeof destination === "string" && getDestinationBySlug(destination) ? destination : "";
 
   return (
     <>
@@ -76,7 +86,11 @@ export default function ContactPage() {
           </div>
         </div>
 
-        <ContactForm />
+        <ContactForm
+          domestic={getDestinationsByScope("domestic").map(toOption)}
+          international={getDestinationsByScope("international").map(toOption)}
+          defaultDestination={defaultDestination}
+        />
       </div>
     </>
   );

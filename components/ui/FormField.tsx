@@ -14,10 +14,13 @@ type InputProps = BaseProps &
 type TextareaProps = BaseProps &
   Omit<ComponentPropsWithoutRef<"textarea">, "id"> & { as: "textarea" };
 
-type FormFieldProps = InputProps | TextareaProps;
+type SelectProps = BaseProps &
+  Omit<ComponentPropsWithoutRef<"select">, "id"> & { as: "select" };
+
+type FormFieldProps = InputProps | TextareaProps | SelectProps;
 
 /**
- * Label + input/textarea pair with a guaranteed-unique id via useId(), so the
+ * Label + input/textarea/select pair with a guaranteed-unique id via useId(), so the
  * same field name can appear in multiple forms on one page (e.g. "email" in
  * both the contact form and the footer newsletter form) without colliding —
  * the old site shipped duplicate id="Input" attributes across its forms.
@@ -33,7 +36,15 @@ export function FormField({ label, error, hint, className, ...props }: FormField
         {label}
         {props.required ? <span aria-hidden="true" className="text-accent-600"> *</span> : null}
       </label>
-      {props.as === "textarea" ? (
+      {props.as === "select" ? (
+        <select
+          id={id}
+          className="field-input"
+          aria-invalid={!!error}
+          aria-describedby={describedBy}
+          {...(props as ComponentPropsWithoutRef<"select">)}
+        />
+      ) : props.as === "textarea" ? (
         <textarea
           id={id}
           className="field-input min-h-32 resize-y"

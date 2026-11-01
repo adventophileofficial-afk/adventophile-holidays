@@ -1,44 +1,14 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
 import { FormField } from "@/components/ui/FormField";
 import { Button } from "@/components/ui/Button";
-
-type Status = "idle" | "loading" | "success" | "error";
+import { useLeadSubmit } from "@/components/shared/useLeadSubmit";
 
 export function NewsletterForm() {
-  const [status, setStatus] = useState<Status>("idle");
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setStatus("loading");
-    setErrorMessage(null);
-
-    const form = new FormData(e.currentTarget);
-    const payload = {
-      name: "Newsletter subscriber",
-      email: String(form.get("email") || ""),
-      message: "Newsletter signup from footer.",
-      type: "newsletter" as const,
-      company: String(form.get("company") || ""),
-    };
-
-    try {
-      const res = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || "Something went wrong.");
-      setStatus("success");
-      e.currentTarget.reset();
-    } catch (err) {
-      setStatus("error");
-      setErrorMessage(err instanceof Error ? err.message : "Something went wrong.");
-    }
-  }
+  const { status, error, handleSubmit } = useLeadSubmit("/api/newsletter", (form) => ({
+    email: String(form.get("email") || ""),
+    company: String(form.get("company") || ""),
+  }));
 
   if (status === "success") {
     return <p className="text-sm text-brand-100">You&rsquo;re subscribed — thanks for joining us.</p>;
@@ -57,7 +27,7 @@ export function NewsletterForm() {
           type="email"
           required
           placeholder="you@example.com"
-          error={status === "error" ? errorMessage ?? undefined : undefined}
+          error={status === "error" ? error?.message : undefined}
           className="[&_.field-label]:text-brand-100 [&_.field-error]:text-accent-500"
         />
       </div>

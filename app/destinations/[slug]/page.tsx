@@ -97,7 +97,7 @@ export default async function DestinationDetailPage({ params }: DestinationPageP
                 Every package here is customizable — dates, hotel category, pace and add-ons. Tell us what
                 you need and we will quote it.
               </p>
-              <Link href="/contact" className="btn-primary mt-4 w-full justify-center">
+              <Link href={`/contact?destination=${destination.slug}`} className="btn-primary mt-4 w-full justify-center">
                 Enquire about {destination.name}
               </Link>
             </div>
@@ -131,7 +131,7 @@ export default async function DestinationDetailPage({ params }: DestinationPageP
                 order. Send us your dates and group size and we will put together a quote, usually within
                 one working day.
               </p>
-              <Link href="/contact" className="btn-primary">
+              <Link href={`/contact?destination=${destination.slug}`} className="btn-primary">
                 Request a quote
               </Link>
             </div>

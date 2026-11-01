@@ -1,48 +1,24 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
 import { FormField } from "@/components/ui/FormField";
 import { Button } from "@/components/ui/Button";
-
-type Status = "idle" | "loading" | "success" | "error";
+import { ConsentCheckbox } from "@/components/shared/ConsentCheckbox";
+import { LeadFormError } from "@/components/shared/LeadFormError";
+import { useLeadSubmit } from "@/components/shared/useLeadSubmit";
 
 export function BookingForm({ tourSlug, tourTitle }: { tourSlug: string; tourTitle: string }) {
-  const [status, setStatus] = useState<Status>("idle");
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setStatus("loading");
-    setErrorMessage(null);
-
-    const form = new FormData(e.currentTarget);
-    const payload = {
-      name: String(form.get("name") || ""),
-      email: String(form.get("email") || ""),
-      phone: String(form.get("phone") || ""),
-      tourSlug,
-      tourTitle,
-      startDate: String(form.get("startDate") || ""),
-      guests: Number(form.get("guests") || 1),
-      message: String(form.get("message") || ""),
-      company: String(form.get("company") || ""),
-    };
-
-    try {
-      const res = await fetch("/api/book", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || "Something went wrong. Please try again.");
-      setStatus("success");
-      e.currentTarget.reset();
-    } catch (err) {
-      setStatus("error");
-      setErrorMessage(err instanceof Error ? err.message : "Something went wrong. Please try again.");
-    }
-  }
+  const { status, error, handleSubmit } = useLeadSubmit("/api/book", (form) => ({
+    name: String(form.get("name") || ""),
+    email: String(form.get("email") || ""),
+    phone: String(form.get("phone") || ""),
+    tourSlug,
+    tourTitle,
+    startDate: String(form.get("startDate") || ""),
+    guests: Number(form.get("guests") || 1),
+    message: String(form.get("message") || ""),
+    consent: form.get("consent") === "on",
+    company: String(form.get("company") || ""),
+  }));
 
   if (status === "success") {
     return (
@@ -60,7 +36,7 @@ export function BookingForm({ tourSlug, tourTitle }: { tourSlug: string; tourTit
     <form onSubmit={handleSubmit} className="card space-y-4 p-5">
       <h3 className="font-semibold text-foreground">Book This Tour</h3>
       <p className="text-sm text-muted-foreground">
-        This sends a booking inquiry — a real person confirms availability and payment details by email.
+        This sends a booking inquiry — a real person confirms availability and payment details by phone or email.
       </p>
 
       <div className="sr-only" aria-hidden="true">
@@ -70,18 +46,16 @@ export function BookingForm({ tourSlug, tourTitle }: { tourSlug: string; tourTit
 
       <FormField label="Full name" name="name" required autoComplete="name" />
       <FormField label="Email" name="email" type="email" required autoComplete="email" />
-      <FormField label="Phone (optional)" name="phone" type="tel" autoComplete="tel" />
+      <FormField label="Phone / WhatsApp" name="phone" type="tel" required autoComplete="tel" />
       <div className="grid grid-cols-2 gap-3">
         <FormField label="Preferred start date" name="startDate" type="date" />
         <FormField label="Guests" name="guests" type="number" min={1} max={30} defaultValue={2} />
       </div>
       <FormField label="Anything we should know?" name="message" as="textarea" placeholder="Optional" />
 
-      {status === "error" && (
-        <p className="field-error" role="alert">
-          {errorMessage}
-        </p>
-      )}
+      <ConsentCheckbox />
+
+      {status === "error" && error && <LeadFormError message={error.message} whatsapp={error.whatsapp} />}
 
       <Button type="submit" variant="accent" disabled={status === "loading"} className="w-full">
         {status === "loading" ? "Sending…" : "Request to Book"}
