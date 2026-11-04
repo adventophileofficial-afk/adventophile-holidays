@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
+import { legacyRedirects } from "./lib/legacy-redirects";
 
 const nextConfig: NextConfig = {
+  // Old WordPress URLs still in Google's index → closest page on the new site.
+  async redirects() {
+    return legacyRedirects;
+  },
   images: {
     // Local placeholder images are SVG; safe to allow since they are self-hosted,
     // not user-uploaded or remote. Revisit once real photography (JPEG/WebP) replaces them.
