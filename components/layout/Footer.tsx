@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Mail, MapPin, Phone } from "lucide-react";
 import { site } from "@/lib/site";
 import { NewsletterForm } from "@/components/shared/NewsletterForm";
-import { FacebookIcon, InstagramIcon, XIcon, YoutubeIcon } from "@/components/icons/SocialIcons";
+import { FacebookIcon, InstagramIcon, LinkedinIcon } from "@/components/icons/SocialIcons";
 
 const exploreLinks = [
   { href: "/destinations", label: "Destinations" },
@@ -23,8 +23,7 @@ const supportLinks = [
 const socialLinks = [
   { href: site.social.instagram, label: "Instagram", icon: InstagramIcon },
   { href: site.social.facebook, label: "Facebook", icon: FacebookIcon },
-  { href: site.social.twitter, label: "Twitter", icon: XIcon },
-  { href: site.social.youtube, label: "YouTube", icon: YoutubeIcon },
+  { href: site.social.linkedin, label: "LinkedIn", icon: LinkedinIcon },
 ];
 
 export function Footer() {

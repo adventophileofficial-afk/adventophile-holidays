@@ -3,13 +3,13 @@ import Link from "next/link";
 import { Mail, Phone } from "lucide-react";
 import { site } from "@/lib/site";
 import { getDestinationsByScope } from "@/lib/data/destinations";
-import { FacebookIcon, InstagramIcon, YoutubeIcon } from "@/components/icons/SocialIcons";
+import { FacebookIcon, InstagramIcon, LinkedinIcon } from "@/components/icons/SocialIcons";
 import { HeaderNav } from "@/components/layout/HeaderNav";
 
 const socialLinks = [
   { href: site.social.instagram, label: "Instagram", icon: InstagramIcon },
   { href: site.social.facebook, label: "Facebook", icon: FacebookIcon },
-  { href: site.social.youtube, label: "YouTube", icon: YoutubeIcon },
+  { href: site.social.linkedin, label: "LinkedIn", icon: LinkedinIcon },
 ];
 
 export function Header() {

@@ -15,10 +15,9 @@ export const site = {
     country: "India",
   },
   social: {
-    instagram: "https://instagram.com/adventophile",
-    facebook: "https://facebook.com/adventophile",
-    twitter: "https://twitter.com/adventophile",
-    youtube: "https://youtube.com/@adventophile",
+    instagram: "https://www.instagram.com/adventophile_official/",
+    facebook: "https://www.facebook.com/share/1EdC8wZgnw/",
+    linkedin: "https://www.linkedin.com/company/adventophile/",
   },
   defaultOgImage: "/images/site/og-default.jpg",
 } as const;

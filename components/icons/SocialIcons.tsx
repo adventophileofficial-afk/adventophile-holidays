@@ -22,19 +22,10 @@ export function FacebookIcon(props: IconProps) {
   );
 }
 
-export function XIcon(props: IconProps) {
+export function LinkedinIcon(props: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
-      <path d="M4 4l7.2 9.6L4.4 20H7l5.4-5.9L17 20h3l-7.5-9.9L19.6 4H17l-5 5.5L8 4H4z" />
-    </svg>
-  );
-}
-
-export function YoutubeIcon(props: IconProps) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} {...props}>
-      <rect x="3" y="6" width="18" height="12" rx="3" />
-      <path d="M10.5 9.5l5 2.5-5 2.5v-5z" fill="currentColor" stroke="none" />
+      <path d="M4.5 3.5a2 2 0 1 1 0 4 2 2 0 0 1 0-4zM3 9h3v12H3V9zm6 0h2.9v1.7h.1c.4-.8 1.4-1.9 3.2-1.9 3.4 0 4 2.2 4 5.1V21h-3v-6.2c0-1.5 0-3.3-2-3.3s-2.3 1.6-2.3 3.2V21H9V9z" />
     </svg>
   );
 }
