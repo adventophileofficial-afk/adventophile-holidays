@@ -42,3 +42,19 @@ yarn-error.log*
 next-env.d.ts
 
 .vercel
+
+# raw source photos (already imported into public/images by scripts/import-*.mjs) and personal files
+/Australia/
+/Bali/
+/Images-adv/
+/Japan/
+/keny/
+/Mauritus/
+/Nepal/
+/New Zeland/
+/Singapore/
+/South Africa/
+/Thailand/
+/tomorrowland/
+/USA/
+/4th sem marksheet.jpeg
